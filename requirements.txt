@@ -1,0 +1,17 @@
+pandas
+numpy
+scikit-learn
+scapy
+joypy
+xgboost
+shap
+matplotlib
+requests
+groq
+fpdf
+networkx
+streamlit-agraph
+plotly
+watchdog
+psutil
+
