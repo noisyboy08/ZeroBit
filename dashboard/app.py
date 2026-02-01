@@ -337,7 +337,7 @@ def render_alert_detail(
         similar = incident_manager.get_similar_incidents(current_features, top_k=3)
         if similar:
             for sim_incident in similar:
-    with st.expander(
+                with st.expander(
         f"Incident #{sim_incident['id']} - {sim_incident['ip']} "
         f"(Similarity: {sim_incident['similarity']:.2%})"
     ):
