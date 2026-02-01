@@ -365,7 +365,7 @@ def render_alert_detail(
             intel_data = threat_intel.get_combined_score(src_ip)
             col1, col2, col3 = st.columns(3)
             with col1:
-    st.metric("Threat Score", f"{intel_data['threat_score']}/100", delta=None)
+                st.metric("Threat Score", f"{intel_data['threat_score']}/100", delta=None)
             with col2:
     risk_color = {
         "Critical": "🔴",
