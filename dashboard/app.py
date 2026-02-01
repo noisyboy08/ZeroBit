@@ -357,7 +357,7 @@ def render_alert_detail(
             if sim_incident['analyst_notes']:
                 st.write(f"**Notes:** {sim_incident['analyst_notes']}")
             else:
-            st.info("No similar past incidents found.")
+                st.info("No similar past incidents found.")
 
     # Threat Intelligence Section
     if threat_intel and src_ip != "Unknown":
