@@ -394,8 +394,8 @@ def render_alert_detail(
             st.write(f"**Suspicious:** {vt.get('suspicious', 0)}")
             st.write(f"**Harmless:** {vt.get('harmless', 0)}")
 
-    if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
-        if not groq_api_key:
+        if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
+            if not groq_api_key:
             st.warning("Enter Groq API Key in the sidebar to generate a report.")
                     else:
             advisor = SecurityAdvisor(api_key=groq_api_key)
