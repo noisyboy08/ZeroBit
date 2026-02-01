@@ -308,7 +308,7 @@ def render_alert_detail(
         with col1:
             if st.button("👍 Confirmed Attack", type="primary", use_container_width=True):
                 if incident_manager and incident_id:
-        incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
+                    incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
         st.success("✅ Feedback recorded: Confirmed Attack")
     else:
         st.warning("Incident manager not available")
@@ -356,7 +356,7 @@ def render_alert_detail(
                 st.write(f"**Resolved at:** {sim_incident['resolved_at']}")
             if sim_incident['analyst_notes']:
                 st.write(f"**Notes:** {sim_incident['analyst_notes']}")
-        else:
+            else:
             st.info("No similar past incidents found.")
 
     # Threat Intelligence Section
@@ -377,8 +377,8 @@ def render_alert_detail(
             with col3:
     abuse_conf = intel_data["abuseipdb"].get("confidence", 0)
     st.metric("AbuseIPDB Confidence", f"{abuse_conf}%")
-
-            st.divider()
+        
+        st.divider()
             col_a, col_b = st.columns(2)
             with col_a:
     st.subheader("AbuseIPDB")
@@ -397,7 +397,7 @@ def render_alert_detail(
     if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
         if not groq_api_key:
             st.warning("Enter Groq API Key in the sidebar to generate a report.")
-        else:
+                    else:
             advisor = SecurityAdvisor(api_key=groq_api_key)
             attack_type = "Malicious network flow"
             affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
@@ -457,7 +457,7 @@ def render_honeypot_metrics(hp_df: pd.DataFrame) -> None:
             }
         )
         st.dataframe(display[["Attacker IP", "Time", "Captured Credentials"]], use_container_width=True)
-    else:
+                else:
         st.info("No honeypot captures yet.")
 
 
@@ -491,7 +491,7 @@ def render_live_feed(alerts: List[Path]) -> None:
     if alerts:
         latest = alerts[0]
         st.image(str(latest), caption=f"Latest: {latest.name}", use_container_width=True)
-    else:
+            else:
         st.info("Waiting for alerts...")
 
 
@@ -541,7 +541,7 @@ def render_threat_level_header(alert_log_df: pd.DataFrame, threat_intel: ThreatI
         level = "🟠 High"
     elif avg_score >= 30:
         level = "🟡 Medium"
-    else:
+        else:
         level = "🟢 Low"
 
     st.metric("Threat Level", level, delta=f"Avg Score: {avg_score:.1f}")
@@ -577,7 +577,7 @@ def render_live_intel_tab(alert_log_df: pd.DataFrame, threat_intel: ThreatIntel)
     if intel_rows:
         intel_df = pd.DataFrame(intel_rows)
         st.dataframe(intel_df, use_container_width=True)
-    else:
+            else:
         st.info("No IPs to analyze.")
 
 
@@ -634,11 +634,11 @@ def main() -> None:
 
     # Header with threat level
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-    with col1:
+                    with col1:
         st.title("ZeroBit: Threat Intelligence Dashboard")
-    with col2:
+                    with col2:
         render_threat_level_header(alert_log_df, threat_intel)
-    with col3:
+                    with col3:
         auto_block_enabled = st.session_state.get("auto_block_enabled", False)
         status = "🟢 Active" if auto_block_enabled else "⚪ Inactive"
         st.metric("Auto-Block", status)
@@ -690,7 +690,7 @@ def main() -> None:
             else:
     with alert_placeholder.container():
         st.info("No alerts yet. Start the processing engine and wait for network traffic.")
-        else:
+                else:
             with alert_placeholder.container():
     st.warning("⚠️ Processing engine is not running. Click 'Start Engine' in the sidebar to begin real-time detection.")
         
@@ -754,7 +754,7 @@ def main() -> None:
         df_hosts = pd.DataFrame(hosts)
         st.metric("Total Devices Online", len(df_hosts))
         st.dataframe(df_hosts[["IP", "MAC", "Vendor"]], use_container_width=True)
-    else:
+        else:
         st.info("No hosts discovered.")
 
     with tabs[5]:
@@ -777,5 +777,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-                main()
+    main()
 
