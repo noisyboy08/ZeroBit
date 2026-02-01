@@ -382,17 +382,17 @@ def render_alert_detail(
         col_a, col_b = st.columns(2)
         with col_a:
             st.subheader("AbuseIPDB")
-    abuse = intel_data["abuseipdb"]
-    st.write(f"**Confidence:** {abuse.get('confidence', 0)}%")
-    st.write(f"**Abuse Reports:** {abuse.get('abuse_count', 0)}")
-    st.write(f"**Usage Type:** {abuse.get('usage_type', 'Unknown')}")
+            abuse = intel_data["abuseipdb"]
+            st.write(f"**Confidence:** {abuse.get('confidence', 0)}%")
+            st.write(f"**Abuse Reports:** {abuse.get('abuse_count', 0)}")
+            st.write(f"**Usage Type:** {abuse.get('usage_type', 'Unknown')}")
 
-            with col_b:
-    st.subheader("VirusTotal")
-    vt = intel_data["virustotal"]
-    st.write(f"**Malicious:** {vt.get('malicious', 0)}")
-    st.write(f"**Suspicious:** {vt.get('suspicious', 0)}")
-    st.write(f"**Harmless:** {vt.get('harmless', 0)}")
+        with col_b:
+            st.subheader("VirusTotal")
+            vt = intel_data["virustotal"]
+            st.write(f"**Malicious:** {vt.get('malicious', 0)}")
+            st.write(f"**Suspicious:** {vt.get('suspicious', 0)}")
+            st.write(f"**Harmless:** {vt.get('harmless', 0)}")
 
     if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
         if not groq_api_key:
