@@ -403,7 +403,7 @@ def render_alert_detail(
             affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
             os_system = "Linux"
             try:
-    resp = advisor.get_remediation(
+                resp = advisor.get_remediation(
         attack_type=attack_type,
         ip_address=src_ip,
         affected_port=str(affected_port),
