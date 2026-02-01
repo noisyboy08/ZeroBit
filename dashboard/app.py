@@ -210,7 +210,7 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         if st.sidebar.button("📁 Deploy Canaries", use_container_width=True):
             # Default to user's Documents folder
             if platform.system() == "Windows":
-    default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
+                default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
             else:
     default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
             
@@ -223,7 +223,7 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         if status["alert_triggered"]:
             st.sidebar.error("🚨 RANSOMWARE ALERT ACTIVE")
             if st.sidebar.button("🔄 Reset Alert", use_container_width=True):
-    canary.reset_alert()
+                canary.reset_alert()
     st.sidebar.success("Alert reset. Refresh page manually if needed.")
     
     if not alerts:
@@ -307,7 +307,7 @@ def render_alert_detail(
         
         with col1:
             if st.button("👍 Confirmed Attack", type="primary", use_container_width=True):
-    if incident_manager and incident_id:
+                if incident_manager and incident_id:
         incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
         st.success("✅ Feedback recorded: Confirmed Attack")
     else:
@@ -315,7 +315,7 @@ def render_alert_detail(
         
         with col2:
             if st.button("👎 False Alarm", type="secondary", use_container_width=True):
-    if incident_manager and incident_id:
+                if incident_manager and incident_id:
         incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
     st.success("✅ Feedback recorded: False Alarm")
     # Trigger retraining in background
@@ -677,7 +677,7 @@ def main() -> None:
         if st.session_state.get("pipeline_running", False):
             latest_alerts = fetch_latest_alerts(limit=20)
             if not latest_alerts.empty:
-    with alert_placeholder.container():
+                with alert_placeholder.container():
         # Show alert count
         st.metric("Active Alerts", len(latest_alerts))
         # Display alerts table
@@ -716,7 +716,7 @@ def main() -> None:
         # Handle report download
         if st.session_state.get("download_report"):
             if alert_log_df.empty:
-    st.warning("No alerts to include in the report.")
+                st.warning("No alerts to include in the report.")
             else:
     report = SecurityReport()
     out_path = Path("report.pdf")
@@ -746,7 +746,7 @@ def main() -> None:
             submitted = st.form_submit_button("Scan Network Now")
         if submitted:
             with st.spinner("Scanning network..."):
-    hosts = scan_network(ip_range)
+                hosts = scan_network(ip_range)
     # Enrich with vendor
     for h in hosts:
         h["Vendor"] = get_mac_vendor(h["MAC"])
@@ -767,7 +767,7 @@ def main() -> None:
         for _, row in latest.iterrows():
             ip = row.get("src_ip", "Unknown")
             if ip != "Unknown":
-    intel = threat_intel.get_combined_score(ip)
+                intel = threat_intel.get_combined_score(ip)
     if intel["threat_score"] > 80:
         result = response_engine.execute_playbook(
             {"src_ip": ip}, intel["threat_score"]
@@ -777,5 +777,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+                main()
 
