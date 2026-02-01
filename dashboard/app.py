@@ -280,7 +280,7 @@ def render_alert_detail(
     # Feedback Loop Section
         st.divider()
     st.subheader("📝 Analyst Feedback")
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
         
     # Get current alert features for similarity search
     current_features = None
