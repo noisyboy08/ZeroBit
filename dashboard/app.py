@@ -309,14 +309,14 @@ def render_alert_detail(
             if st.button("👍 Confirmed Attack", type="primary", use_container_width=True):
                 if incident_manager and incident_id:
                     incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
-        st.success("✅ Feedback recorded: Confirmed Attack")
-    else:
-        st.warning("Incident manager not available")
+                    st.success("✅ Feedback recorded: Confirmed Attack")
+                else:
+                    st.warning("Incident manager not available")
         
         with col2:
             if st.button("👎 False Alarm", type="secondary", use_container_width=True):
                 if incident_manager and incident_id:
-        incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
+                    incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
     st.success("✅ Feedback recorded: False Alarm")
     # Trigger retraining in background
     with st.spinner("Retraining model with feedback..."):
