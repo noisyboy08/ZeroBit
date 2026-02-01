@@ -173,8 +173,8 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         simulator = AttackSimulator()
         with st.sidebar:
             with st.spinner("Simulating DoS attack..."):
-    count = simulator.simulate_dos(target_ip, duration=3)
-    st.success(f"Sent {count} attack packets!")
+                count = simulator.simulate_dos(target_ip, duration=3)
+                st.success(f"Sent {count} attack packets!")
         # Don't auto-rerun - user can manually refresh if needed
     
     if st.sidebar.button("🔍 Launch Port Probe", use_container_width=True):
