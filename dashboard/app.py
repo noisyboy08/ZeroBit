@@ -396,9 +396,9 @@ def render_alert_detail(
 
         if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
             if not groq_api_key:
-            st.warning("Enter Groq API Key in the sidebar to generate a report.")
-                    else:
-            advisor = SecurityAdvisor(api_key=groq_api_key)
+                st.warning("Enter Groq API Key in the sidebar to generate a report.")
+            else:
+                advisor = SecurityAdvisor(api_key=groq_api_key)
             attack_type = "Malicious network flow"
             affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
             os_system = "Linux"
