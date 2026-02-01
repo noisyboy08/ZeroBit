@@ -173,24 +173,24 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         simulator = AttackSimulator()
         with st.sidebar:
             with st.spinner("Simulating DoS attack..."):
-                count = simulator.simulate_dos(target_ip, duration=3)
-                st.success(f"Sent {count} attack packets!")
+    count = simulator.simulate_dos(target_ip, duration=3)
+    st.success(f"Sent {count} attack packets!")
         # Don't auto-rerun - user can manually refresh if needed
     
     if st.sidebar.button("🔍 Launch Port Probe", use_container_width=True):
         simulator = AttackSimulator()
         with st.sidebar:
             with st.spinner("Simulating port scan..."):
-                count = simulator.simulate_probe(target_ip, num_ports=15)
-                st.success(f"Probed {count} ports!")
+    count = simulator.simulate_probe(target_ip, num_ports=15)
+    st.success(f"Probed {count} ports!")
         # Don't auto-rerun - user can manually refresh if needed
     
     if st.sidebar.button("✅ Generate Safe Noise", use_container_width=True, type="primary"):
         simulator = AttackSimulator()
         with st.sidebar:
             with st.spinner("Generating safe traffic (HTTP/DNS)..."):
-                count = simulator.simulate_noise(target_ip="8.8.8.8", num_packets=10)
-                st.info(f"Generated {count} safe packets. Check if system alerts (should be False Positive).")
+    count = simulator.simulate_noise(target_ip="8.8.8.8", num_packets=10)
+    st.info(f"Generated {count} safe packets. Check if system alerts (should be False Positive).")
         # Don't auto-rerun - user can manually refresh if needed
     
     # Canary Deployment Section
@@ -210,9 +210,9 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         if st.sidebar.button("📁 Deploy Canaries", use_container_width=True):
             # Default to user's Documents folder
             if platform.system() == "Windows":
-                default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
+    default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
             else:
-                default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
+    default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
             
             default_dir.mkdir(parents=True, exist_ok=True)
             created = canary.setup_traps(default_dir)
@@ -223,8 +223,8 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         if status["alert_triggered"]:
             st.sidebar.error("🚨 RANSOMWARE ALERT ACTIVE")
             if st.sidebar.button("🔄 Reset Alert", use_container_width=True):
-                canary.reset_alert()
-                st.sidebar.success("Alert reset. Refresh page manually if needed.")
+    canary.reset_alert()
+    st.sidebar.success("Alert reset. Refresh page manually if needed.")
     
     if not alerts:
         st.sidebar.info("No alerts yet.")
@@ -291,42 +291,42 @@ def render_alert_detail(
         try:
             # Create a simple feature dict from available data
             current_features = {
-                "threat_score": threat_score,
-                "confidence": float(row["confidence"]) if "confidence" in row and pd.notna(row["confidence"]) else 0.0,
+    "threat_score": threat_score,
+    "confidence": float(row["confidence"]) if "confidence" in row and pd.notna(row["confidence"]) else 0.0,
             }
             # Log incident if not already logged
             incident_id = incident_manager.log_incident(
-                features=current_features,
-                prediction=1,  # Assuming malicious since it's an alert
-                threat_score=threat_score,
-                ip=src_ip,
-                attack_type=row.get("reason", "Unknown") if row is not None else "Unknown",
+    features=current_features,
+    prediction=1,  # Assuming malicious since it's an alert
+    threat_score=threat_score,
+    ip=src_ip,
+    attack_type=row.get("reason", "Unknown") if row is not None else "Unknown",
             )
         except Exception:
             pass
         
         with col1:
             if st.button("👍 Confirmed Attack", type="primary", use_container_width=True):
-                if incident_manager and incident_id:
-                    incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
-                    st.success("✅ Feedback recorded: Confirmed Attack")
-                else:
-                    st.warning("Incident manager not available")
+    if incident_manager and incident_id:
+        incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
+        st.success("✅ Feedback recorded: Confirmed Attack")
+    else:
+        st.warning("Incident manager not available")
         
         with col2:
             if st.button("👎 False Alarm", type="secondary", use_container_width=True):
-                if incident_manager and incident_id:
-                    incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
-                st.success("✅ Feedback recorded: False Alarm")
-                # Trigger retraining in background
-                with st.spinner("Retraining model with feedback..."):
-                    try:
-                        result = retrain_on_feedback()
-                        st.info(result)
-                    except Exception as exc:
-                        st.error(f"Retraining failed: {exc}")
+    if incident_manager and incident_id:
+        incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
+    st.success("✅ Feedback recorded: False Alarm")
+    # Trigger retraining in background
+    with st.spinner("Retraining model with feedback..."):
+        try:
+            result = retrain_on_feedback()
+            st.info(result)
+        except Exception as exc:
+            st.error(f"Retraining failed: {exc}")
             else:
-                st.warning("Incident manager not available")
+    st.warning("Incident manager not available")
             move_false_positive(selected)
             # Removed auto-rerun to prevent refresh loop - user can manually refresh
 
@@ -337,25 +337,25 @@ def render_alert_detail(
         similar = incident_manager.get_similar_incidents(current_features, top_k=3)
         if similar:
             for sim_incident in similar:
-                with st.expander(
-                    f"Incident #{sim_incident['id']} - {sim_incident['ip']} "
-                    f"(Similarity: {sim_incident['similarity']:.2%})"
-                ):
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        st.write(f"**Timestamp:** {sim_incident['timestamp']}")
-                        st.write(f"**IP:** {sim_incident['ip']}")
-                        st.write(f"**Attack Type:** {sim_incident['attack_type']}")
-                        st.write(f"**Priority:** {sim_incident['priority']}")
-                    with col_b:
-                        st.write(f"**Threat Score:** {sim_incident['threat_score']:.1f}")
-                        label_text = "✅ True Positive" if sim_incident['human_label'] == 1 else "❌ False Positive"
-                        st.write(f"**Status:** {label_text}")
-                        if sim_incident['resolved']:
-                            st.write(f"**Resolved by:** {sim_incident['resolved_by']}")
-                            st.write(f"**Resolved at:** {sim_incident['resolved_at']}")
-                        if sim_incident['analyst_notes']:
-                            st.write(f"**Notes:** {sim_incident['analyst_notes']}")
+    with st.expander(
+        f"Incident #{sim_incident['id']} - {sim_incident['ip']} "
+        f"(Similarity: {sim_incident['similarity']:.2%})"
+    ):
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.write(f"**Timestamp:** {sim_incident['timestamp']}")
+            st.write(f"**IP:** {sim_incident['ip']}")
+            st.write(f"**Attack Type:** {sim_incident['attack_type']}")
+            st.write(f"**Priority:** {sim_incident['priority']}")
+        with col_b:
+            st.write(f"**Threat Score:** {sim_incident['threat_score']:.1f}")
+            label_text = "✅ True Positive" if sim_incident['human_label'] == 1 else "❌ False Positive"
+            st.write(f"**Status:** {label_text}")
+            if sim_incident['resolved']:
+                st.write(f"**Resolved by:** {sim_incident['resolved_by']}")
+                st.write(f"**Resolved at:** {sim_incident['resolved_at']}")
+            if sim_incident['analyst_notes']:
+                st.write(f"**Notes:** {sim_incident['analyst_notes']}")
         else:
             st.info("No similar past incidents found.")
 
@@ -365,34 +365,34 @@ def render_alert_detail(
             intel_data = threat_intel.get_combined_score(src_ip)
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Threat Score", f"{intel_data['threat_score']}/100", delta=None)
+    st.metric("Threat Score", f"{intel_data['threat_score']}/100", delta=None)
             with col2:
-                risk_color = {
-                    "Critical": "🔴",
-                    "High": "🟠",
-                    "Medium": "🟡",
-                    "Low": "🟢",
-                }.get(intel_data["risk_level"], "⚪")
-                st.metric("Risk Level", f"{risk_color} {intel_data['risk_level']}")
+    risk_color = {
+        "Critical": "🔴",
+        "High": "🟠",
+        "Medium": "🟡",
+        "Low": "🟢",
+    }.get(intel_data["risk_level"], "⚪")
+    st.metric("Risk Level", f"{risk_color} {intel_data['risk_level']}")
             with col3:
-                abuse_conf = intel_data["abuseipdb"].get("confidence", 0)
-                st.metric("AbuseIPDB Confidence", f"{abuse_conf}%")
+    abuse_conf = intel_data["abuseipdb"].get("confidence", 0)
+    st.metric("AbuseIPDB Confidence", f"{abuse_conf}%")
 
             st.divider()
             col_a, col_b = st.columns(2)
             with col_a:
-                st.subheader("AbuseIPDB")
-                abuse = intel_data["abuseipdb"]
-                st.write(f"**Confidence:** {abuse.get('confidence', 0)}%")
-                st.write(f"**Abuse Reports:** {abuse.get('abuse_count', 0)}")
-                st.write(f"**Usage Type:** {abuse.get('usage_type', 'Unknown')}")
+    st.subheader("AbuseIPDB")
+    abuse = intel_data["abuseipdb"]
+    st.write(f"**Confidence:** {abuse.get('confidence', 0)}%")
+    st.write(f"**Abuse Reports:** {abuse.get('abuse_count', 0)}")
+    st.write(f"**Usage Type:** {abuse.get('usage_type', 'Unknown')}")
 
             with col_b:
-                st.subheader("VirusTotal")
-                vt = intel_data["virustotal"]
-                st.write(f"**Malicious:** {vt.get('malicious', 0)}")
-                st.write(f"**Suspicious:** {vt.get('suspicious', 0)}")
-                st.write(f"**Harmless:** {vt.get('harmless', 0)}")
+    st.subheader("VirusTotal")
+    vt = intel_data["virustotal"]
+    st.write(f"**Malicious:** {vt.get('malicious', 0)}")
+    st.write(f"**Suspicious:** {vt.get('suspicious', 0)}")
+    st.write(f"**Harmless:** {vt.get('harmless', 0)}")
 
     if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
         if not groq_api_key:
@@ -403,19 +403,19 @@ def render_alert_detail(
             affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
             os_system = "Linux"
             try:
-                resp = advisor.get_remediation(
-                    attack_type=attack_type,
-                    ip_address=src_ip,
-                    affected_port=str(affected_port),
-                    os_system=os_system,
-                )
-                st.info(resp)
-                for line in resp.splitlines():
-                    if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
-                        st.code(line.strip(), language="bash")
-                        break
+    resp = advisor.get_remediation(
+        attack_type=attack_type,
+        ip_address=src_ip,
+        affected_port=str(affected_port),
+        os_system=os_system,
+    )
+    st.info(resp)
+    for line in resp.splitlines():
+        if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
+            st.code(line.strip(), language="bash")
+            break
             except Exception as exc:
-                st.error(f"AI Advisor failed: {exc}")
+    st.error(f"AI Advisor failed: {exc}")
 
     # Kill Chain Card (MITRE)
     mitre_id = mitre_name = mitre_phase = mitre_desc = None
@@ -451,9 +451,9 @@ def render_honeypot_metrics(hp_df: pd.DataFrame) -> None:
     if count:
         display = hp_df.rename(
             columns={
-                "attacker_ip": "Attacker IP",
-                "timestamp": "Time",
-                "payload": "Captured Credentials",
+    "attacker_ip": "Attacker IP",
+    "timestamp": "Time",
+    "payload": "Captured Credentials",
             }
         )
         st.dataframe(display[["Attacker IP", "Time", "Captured Credentials"]], use_container_width=True)
@@ -564,14 +564,14 @@ def render_live_intel_tab(alert_log_df: pd.DataFrame, threat_intel: ThreatIntel)
         if ip != "Unknown":
             intel = threat_intel.get_combined_score(ip)
             intel_rows.append(
-                {
-                    "IP": ip,
-                    "Threat Score": intel["threat_score"],
-                    "Risk Level": intel["risk_level"],
-                    "AbuseIPDB": intel["abuseipdb"].get("confidence", 0),
-                    "VT Malicious": intel["virustotal"].get("malicious", 0),
-                    "Timestamp": row.get("timestamp", "N/A"),
-                }
+    {
+        "IP": ip,
+        "Threat Score": intel["threat_score"],
+        "Risk Level": intel["risk_level"],
+        "AbuseIPDB": intel["abuseipdb"].get("confidence", 0),
+        "VT Malicious": intel["virustotal"].get("malicious", 0),
+        "Timestamp": row.get("timestamp", "N/A"),
+    }
             )
 
     if intel_rows:
@@ -593,10 +593,10 @@ def render_attack_graph_tab(alert_log_df: pd.DataFrame) -> None:
     for _, row in alert_log_df.tail(50).iterrows():  # Last 50 alerts
         alerts_list.append(
             {
-                "src_ip": row.get("src_ip", "Unknown"),
-                "dst_port": row.get("dst_port", "Unknown"),
-                "attack_type": row.get("reason", "Unknown Attack"),
-                "timestamp": row.get("timestamp", ""),
+    "src_ip": row.get("src_ip", "Unknown"),
+    "dst_port": row.get("dst_port", "Unknown"),
+    "attack_type": row.get("reason", "Unknown Attack"),
+    "timestamp": row.get("timestamp", ""),
             }
         )
 
@@ -634,9 +634,9 @@ def main() -> None:
 
     # Header with threat level
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-                with col1:
+    with col1:
         st.title("ZeroBit: Threat Intelligence Dashboard")
-                with col2:
+    with col2:
         render_threat_level_header(alert_log_df, threat_intel)
     with col3:
         auto_block_enabled = st.session_state.get("auto_block_enabled", False)
@@ -647,18 +647,18 @@ def main() -> None:
         canary = st.session_state["canary_monitor"]
         if canary.alert_triggered:
             st.markdown(
-                '<div style="background-color: #ff0000; padding: 10px; border-radius: 5px; text-align: center; animation: blink 1s infinite;">'
-                '<h2 style="color: white; margin: 0;">🚨 RANSOMWARE DETECTED</h2>'
-                '<p style="color: white; margin: 5px 0;">NETWORK SEVERED</p>'
-                '</div>',
-                unsafe_allow_html=True
+    '<div style="background-color: #ff0000; padding: 10px; border-radius: 5px; text-align: center; animation: blink 1s infinite;">'
+    '<h2 style="color: white; margin: 0;">🚨 RANSOMWARE DETECTED</h2>'
+    '<p style="color: white; margin: 5px 0;">NETWORK SEVERED</p>'
+    '</div>',
+    unsafe_allow_html=True
             )
         else:
             st.markdown(
-                '<div style="background-color: #00ff00; padding: 10px; border-radius: 5px; text-align: center;">'
-                '<h3 style="color: black; margin: 0;">🟢 System Healthy</h3>'
-                '</div>',
-                unsafe_allow_html=True
+    '<div style="background-color: #00ff00; padding: 10px; border-radius: 5px; text-align: center;">'
+    '<h3 style="color: black; margin: 0;">🟢 System Healthy</h3>'
+    '</div>',
+    unsafe_allow_html=True
             )
 
     tabs = st.tabs(
@@ -677,22 +677,22 @@ def main() -> None:
         if st.session_state.get("pipeline_running", False):
             latest_alerts = fetch_latest_alerts(limit=20)
             if not latest_alerts.empty:
-                with alert_placeholder.container():
-                    # Show alert count
-                    st.metric("Active Alerts", len(latest_alerts))
-                    # Display alerts table
-                    display_df = latest_alerts[["timestamp", "src_ip", "dst_ip", "attack_type", "confidence"]].copy()
-                    display_df["confidence"] = display_df["confidence"].apply(
-                        lambda x: f"{x:.2%}" if pd.notna(x) else "N/A"
-                    )
-                    display_df.columns = ["Time", "Source IP", "Dest IP", "Attack Type", "Confidence"]
-                    st.dataframe(display_df, use_container_width=True, height=300)
+    with alert_placeholder.container():
+        # Show alert count
+        st.metric("Active Alerts", len(latest_alerts))
+        # Display alerts table
+        display_df = latest_alerts[["timestamp", "src_ip", "dst_ip", "attack_type", "confidence"]].copy()
+        display_df["confidence"] = display_df["confidence"].apply(
+            lambda x: f"{x:.2%}" if pd.notna(x) else "N/A"
+        )
+        display_df.columns = ["Time", "Source IP", "Dest IP", "Attack Type", "Confidence"]
+        st.dataframe(display_df, use_container_width=True, height=300)
             else:
-                with alert_placeholder.container():
-                    st.info("No alerts yet. Start the processing engine and wait for network traffic.")
+    with alert_placeholder.container():
+        st.info("No alerts yet. Start the processing engine and wait for network traffic.")
         else:
             with alert_placeholder.container():
-                st.warning("⚠️ Processing engine is not running. Click 'Start Engine' in the sidebar to begin real-time detection.")
+    st.warning("⚠️ Processing engine is not running. Click 'Start Engine' in the sidebar to begin real-time detection.")
         
         # Use Streamlit's auto-refresh instead of manual rerun
         # Auto-refresh is handled by Streamlit's built-in refresh mechanism
@@ -716,18 +716,18 @@ def main() -> None:
         # Handle report download
         if st.session_state.get("download_report"):
             if alert_log_df.empty:
-                st.warning("No alerts to include in the report.")
+    st.warning("No alerts to include in the report.")
             else:
-                report = SecurityReport()
-                out_path = Path("report.pdf")
-                report.generate_daily_report(alert_log_df, out_path)
-                with out_path.open("rb") as f:
-                    st.download_button(
-                        label="Download report.pdf",
-                        data=f,
-                        file_name="report.pdf",
-                        mime="application/pdf",
-                    )
+    report = SecurityReport()
+    out_path = Path("report.pdf")
+    report.generate_daily_report(alert_log_df, out_path)
+    with out_path.open("rb") as f:
+        st.download_button(
+            label="Download report.pdf",
+            data=f,
+            file_name="report.pdf",
+            mime="application/pdf",
+        )
             st.session_state["download_report"] = False
 
     with tabs[1]:
@@ -746,16 +746,16 @@ def main() -> None:
             submitted = st.form_submit_button("Scan Network Now")
         if submitted:
             with st.spinner("Scanning network..."):
-                hosts = scan_network(ip_range)
-                # Enrich with vendor
-                for h in hosts:
-                    h["Vendor"] = get_mac_vendor(h["MAC"])
-                if hosts:
-                    df_hosts = pd.DataFrame(hosts)
-                    st.metric("Total Devices Online", len(df_hosts))
-                    st.dataframe(df_hosts[["IP", "MAC", "Vendor"]], use_container_width=True)
-                else:
-                    st.info("No hosts discovered.")
+    hosts = scan_network(ip_range)
+    # Enrich with vendor
+    for h in hosts:
+        h["Vendor"] = get_mac_vendor(h["MAC"])
+    if hosts:
+        df_hosts = pd.DataFrame(hosts)
+        st.metric("Total Devices Online", len(df_hosts))
+        st.dataframe(df_hosts[["IP", "MAC", "Vendor"]], use_container_width=True)
+    else:
+        st.info("No hosts discovered.")
 
     with tabs[5]:
         render_live_feed(alerts)
@@ -767,13 +767,13 @@ def main() -> None:
         for _, row in latest.iterrows():
             ip = row.get("src_ip", "Unknown")
             if ip != "Unknown":
-                intel = threat_intel.get_combined_score(ip)
-                if intel["threat_score"] > 80:
-                    result = response_engine.execute_playbook(
-                        {"src_ip": ip}, intel["threat_score"]
-                    )
-                    if result["action"] == "blocked":
-                        st.sidebar.success(f"Auto-blocked: {ip}")
+    intel = threat_intel.get_combined_score(ip)
+    if intel["threat_score"] > 80:
+        result = response_engine.execute_playbook(
+            {"src_ip": ip}, intel["threat_score"]
+        )
+        if result["action"] == "blocked":
+            st.sidebar.success(f"Auto-blocked: {ip}")
 
 
 if __name__ == "__main__":
