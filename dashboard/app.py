@@ -281,7 +281,7 @@ def render_alert_detail(
         st.divider()
     st.subheader("📝 Analyst Feedback")
     col1, col2 = st.columns(2)
-        
+    
     # Get current alert features for similarity search
     current_features = None
     incident_id = None
@@ -306,7 +306,7 @@ def render_alert_detail(
             pass
         
         with col1:
-        if st.button("👍 Confirmed Attack", type="primary", use_container_width=True):
+            if st.button("👍 Confirmed Attack", type="primary", use_container_width=True):
             if incident_manager and incident_id:
                 incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
                 st.success("✅ Feedback recorded: Confirmed Attack")
