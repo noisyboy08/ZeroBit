@@ -367,13 +367,13 @@ def render_alert_detail(
             with col1:
                 st.metric("Threat Score", f"{intel_data['threat_score']}/100", delta=None)
             with col2:
-    risk_color = {
-        "Critical": "🔴",
-        "High": "🟠",
-        "Medium": "🟡",
-        "Low": "🟢",
-    }.get(intel_data["risk_level"], "⚪")
-    st.metric("Risk Level", f"{risk_color} {intel_data['risk_level']}")
+                risk_color = {
+                    "Critical": "🔴",
+                    "High": "🟠",
+                    "Medium": "🟡",
+                    "Low": "🟢",
+                }.get(intel_data["risk_level"], "⚪")
+                st.metric("Risk Level", f"{risk_color} {intel_data['risk_level']}")
             with col3:
     abuse_conf = intel_data["abuseipdb"].get("confidence", 0)
     st.metric("AbuseIPDB Confidence", f"{abuse_conf}%")
