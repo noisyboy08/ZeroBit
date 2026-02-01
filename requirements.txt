@@ -1,22 +1,7 @@
-pandas
-numpy
-scikit-learn
-scapy
-joypy
-xgboost
-shap
-matplotlib
-requests
-groq
-fpdf
-networkx
-streamlit-agraph
-plotly
-watchdog
-psutil
-<<<<<<< HEAD
-streamlit
-joblib
-=======
-
->>>>>>> 766c7e1fe5dbb41d48b625425c5c1a1c985b7d47
+# Core dependencies for ZeroBit Dashboard - Streamlit Cloud Compatible
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+plotly>=5.17.0
+scikit-learn>=1.3.0
+requests>=2.31.0
