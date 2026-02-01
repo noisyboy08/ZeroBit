@@ -404,15 +404,15 @@ def render_alert_detail(
             os_system = "Linux"
             try:
                 resp = advisor.get_remediation(
-        attack_type=attack_type,
-        ip_address=src_ip,
-        affected_port=str(affected_port),
-        os_system=os_system,
-    )
-    st.info(resp)
-    for line in resp.splitlines():
-        if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
-            st.code(line.strip(), language="bash")
+                    attack_type=attack_type,
+                    ip_address=src_ip,
+                    affected_port=str(affected_port),
+                    os_system=os_system,
+                )
+                st.info(resp)
+                for line in resp.splitlines():
+                    if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
+                        st.code(line.strip(), language="bash")
             break
             except Exception as exc:
     st.error(f"AI Advisor failed: {exc}")
