@@ -338,10 +338,10 @@ def render_alert_detail(
         if similar:
             for sim_incident in similar:
                 with st.expander(
-        f"Incident #{sim_incident['id']} - {sim_incident['ip']} "
-        f"(Similarity: {sim_incident['similarity']:.2%})"
-    ):
-        col_a, col_b = st.columns(2)
+                    f"Incident #{sim_incident['id']} - {sim_incident['ip']} "
+                    f"(Similarity: {sim_incident['similarity']:.2%})"
+                ):
+                    col_a, col_b = st.columns(2)
         with col_a:
             st.write(f"**Timestamp:** {sim_incident['timestamp']}")
             st.write(f"**IP:** {sim_incident['ip']}")
