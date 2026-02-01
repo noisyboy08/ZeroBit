@@ -378,10 +378,10 @@ def render_alert_detail(
                 abuse_conf = intel_data["abuseipdb"].get("confidence", 0)
                 st.metric("AbuseIPDB Confidence", f"{abuse_conf}%")
         
-    st.divider()
-            col_a, col_b = st.columns(2)
-            with col_a:
-    st.subheader("AbuseIPDB")
+        st.divider()
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.subheader("AbuseIPDB")
     abuse = intel_data["abuseipdb"]
     st.write(f"**Confidence:** {abuse.get('confidence', 0)}%")
     st.write(f"**Abuse Reports:** {abuse.get('abuse_count', 0)}")
