@@ -181,8 +181,8 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         simulator = AttackSimulator()
         with st.sidebar:
             with st.spinner("Simulating port scan..."):
-    count = simulator.simulate_probe(target_ip, num_ports=15)
-    st.success(f"Probed {count} ports!")
+                count = simulator.simulate_probe(target_ip, num_ports=15)
+                st.success(f"Probed {count} ports!")
         # Don't auto-rerun - user can manually refresh if needed
     
     if st.sidebar.button("✅ Generate Safe Noise", use_container_width=True, type="primary"):
