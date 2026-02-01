@@ -317,17 +317,17 @@ def render_alert_detail(
             if st.button("👎 False Alarm", type="secondary", use_container_width=True):
                 if incident_manager and incident_id:
                     incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
-    st.success("✅ Feedback recorded: False Alarm")
-    # Trigger retraining in background
-    with st.spinner("Retraining model with feedback..."):
-        try:
-            result = retrain_on_feedback()
-            st.info(result)
-        except Exception as exc:
-            st.error(f"Retraining failed: {exc}")
-            else:
-    st.warning("Incident manager not available")
-            move_false_positive(selected)
+                    st.success("✅ Feedback recorded: False Alarm")
+                    # Trigger retraining in background
+                    with st.spinner("Retraining model with feedback..."):
+                        try:
+                            result = retrain_on_feedback()
+                            st.info(result)
+                        except Exception as exc:
+                            st.error(f"Retraining failed: {exc}")
+                    move_false_positive(selected)
+                else:
+                    st.warning("Incident manager not available")
             # Removed auto-rerun to prevent refresh loop - user can manually refresh
 
     # Similar Past Incidents Section
