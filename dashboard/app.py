@@ -6,7 +6,7 @@ import sqlite3
 import subprocess
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import streamlit as st
@@ -248,11 +248,11 @@ def render_priority_badge(priority: str) -> None:
 
 
 def render_alert_detail(
-    selected: Path | None,
+    selected: Optional[Path],
     alert_log_df: pd.DataFrame,
-    groq_api_key: str | None,
-    threat_intel: ThreatIntel | None = None,
-    incident_manager: IncidentManager | None = None,
+    groq_api_key: Optional[str],
+    threat_intel: Optional[ThreatIntel] = None,
+    incident_manager: Optional[IncidentManager] = None,
 ) -> None:
     st.header("Alert Detail")
     if not selected:
@@ -278,10 +278,10 @@ def render_alert_detail(
         render_priority_badge(priority)
 
     # Feedback Loop Section
-    st.divider()
+        st.divider()
     st.subheader("📝 Analyst Feedback")
-    col1, col2 = st.columns(2)
-
+        col1, col2 = st.columns(2)
+        
     # Get current alert features for similarity search
     current_features = None
     incident_id = None
@@ -304,16 +304,16 @@ def render_alert_detail(
             )
         except Exception:
             pass
-
-    with col1:
+        
+        with col1:
         if st.button("👍 Confirmed Attack", type="primary", use_container_width=True):
             if incident_manager and incident_id:
                 incident_manager.add_feedback(incident_id, is_true_positive=True, notes="Confirmed by analyst")
                 st.success("✅ Feedback recorded: Confirmed Attack")
             else:
                 st.warning("Incident manager not available")
-
-    with col2:
+        
+        with col2:
         if st.button("👎 False Alarm", type="secondary", use_container_width=True):
             if incident_manager and incident_id:
                 incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
@@ -634,9 +634,9 @@ def main() -> None:
 
     # Header with threat level
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-    with col1:
+                with col1:
         st.title("ZeroBit: Threat Intelligence Dashboard")
-    with col2:
+                with col2:
         render_threat_level_header(alert_log_df, threat_intel)
     with col3:
         auto_block_enabled = st.session_state.get("auto_block_enabled", False)
