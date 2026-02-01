@@ -212,7 +212,7 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
             if platform.system() == "Windows":
                 default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
             else:
-    default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
+                default_dir = Path(os.path.expanduser("~/Documents/ZeroBit_Canaries"))
             
             default_dir.mkdir(parents=True, exist_ok=True)
             created = canary.setup_traps(default_dir)
