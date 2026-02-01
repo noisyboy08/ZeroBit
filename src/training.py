@@ -25,6 +25,10 @@ import shap  # type: ignore
 
 from .eta_features import build_eta_frame
 from .feedback import IncidentManager
+<<<<<<< HEAD
+=======
+import shap  # type: ignore
+>>>>>>> 766c7e1fe5dbb41d48b625425c5c1a1c985b7d47
 
 # Official NSL-KDD column names (42 cols). Some versions add an extra "difficulty".
 NSL_KDD_COLUMNS: List[str] = [
