@@ -413,9 +413,9 @@ def render_alert_detail(
                 for line in resp.splitlines():
                     if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
                         st.code(line.strip(), language="bash")
-            break
+                        break
             except Exception as exc:
-    st.error(f"AI Advisor failed: {exc}")
+                st.error(f"AI Advisor failed: {exc}")
 
     # Kill Chain Card (MITRE)
     mitre_id = mitre_name = mitre_phase = mitre_desc = None
