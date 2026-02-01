@@ -375,8 +375,8 @@ def render_alert_detail(
                 }.get(intel_data["risk_level"], "⚪")
                 st.metric("Risk Level", f"{risk_color} {intel_data['risk_level']}")
             with col3:
-    abuse_conf = intel_data["abuseipdb"].get("confidence", 0)
-    st.metric("AbuseIPDB Confidence", f"{abuse_conf}%")
+                abuse_conf = intel_data["abuseipdb"].get("confidence", 0)
+                st.metric("AbuseIPDB Confidence", f"{abuse_conf}%")
         
         st.divider()
             col_a, col_b = st.columns(2)
