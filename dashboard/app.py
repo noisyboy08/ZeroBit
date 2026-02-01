@@ -189,8 +189,8 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
         simulator = AttackSimulator()
         with st.sidebar:
             with st.spinner("Generating safe traffic (HTTP/DNS)..."):
-    count = simulator.simulate_noise(target_ip="8.8.8.8", num_packets=10)
-    st.info(f"Generated {count} safe packets. Check if system alerts (should be False Positive).")
+                count = simulator.simulate_noise(target_ip="8.8.8.8", num_packets=10)
+                st.info(f"Generated {count} safe packets. Check if system alerts (should be False Positive).")
         # Don't auto-rerun - user can manually refresh if needed
     
     # Canary Deployment Section
