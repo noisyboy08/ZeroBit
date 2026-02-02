@@ -512,12 +512,13 @@ def render_ueba_chart(ueba_df: pd.DataFrame) -> None:
 
 def render_live_feed(alerts: List[Path]) -> None:
     st.header("Live Feed")
-    st.caption("Auto-refreshes every 2 seconds for new alerts.")
-    # Lightweight auto-refresh via meta refresh
-    st.markdown(
-        "<meta http-equiv='refresh' content='2'>",
-        unsafe_allow_html=True,
-    )
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.caption("Latest alerts from detection system.")
+    with col2:
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.rerun()
+    
     if alerts:
         latest = alerts[0]
         st.image(str(latest), caption=f"Latest: {latest.name}", use_container_width=True)
