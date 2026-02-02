@@ -4,12 +4,18 @@ import platform
 import shutil
 import sqlite3
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
 import streamlit as st
+
+# Add parent directory to Python path so 'src' module can be found
+parent_dir = Path(__file__).parent.parent
+if str(parent_dir) not in sys.path:
+    sys.path.insert(0, str(parent_dir))
 
 # Try importing optional modules with fallback
 try:
@@ -40,8 +46,7 @@ except ImportError:
 
 try:
     from src.threat_intel import ThreatIntel
-except ImportError as e:
-    st.error(f"Failed to import ThreatIntel: {e}")
+except ImportError:
     ThreatIntel = None
 
 try:
