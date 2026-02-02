@@ -50,7 +50,6 @@ class TrafficExplainer:
         Compute SHAP values for a single flow vector and return a text summary
         of the top 3 features driving a malicious classification.
         """
-<<<<<<< HEAD
         if self.explainer is None or self.model is None:
             return "Reason: Model or explainer not available. Using default explanation."
         
@@ -76,27 +75,6 @@ class TrafficExplainer:
             return f"Reason: Explanation generation failed: {str(e)}"
 
     def save_plot(self, flow_vector: pd.DataFrame, timestamp: str, output_dir: str = "static/alerts") -> Path:
-=======
-        shap_values = self.explainer(flow_vector)
-        contribs = shap_values.values[0]
-        feature_names = flow_vector.columns
-
-        # Top 3 positive contributions
-        pos_idxs = np.argsort(contribs)[::-1]
-        top_idxs = [idx for idx in pos_idxs if contribs[idx] > 0][:3]
-
-        if len(top_idxs) == 0:
-            return "Reason: No positive contributors; prediction driven by neutral/negative features."
-
-        total = np.sum(np.abs(contribs)) or 1.0
-        parts = []
-        for idx in top_idxs:
-            perc = (contribs[idx] / total) * 100
-            parts.append(f"{feature_names[idx]} (+{perc:.1f}%)")
-        return "Reason: " + ", ".join(parts)
-
-    def save_plot(self, flow_vector, timestamp: str, output_dir: str = "static/alerts") -> Path:
->>>>>>> 766c7e1fe5dbb41d48b625425c5c1a1c985b7d47
         """
         Save a SHAP waterfall plot for the provided flow_vector.
         """
@@ -104,7 +82,6 @@ class TrafficExplainer:
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"alert_{timestamp}.png"
 
-<<<<<<< HEAD
         if self.explainer is None:
             # Create a simple placeholder plot
             plt.figure(figsize=(8, 6))
@@ -131,29 +108,6 @@ class TrafficExplainer:
             plt.close()
         
         return out_path
-=======
-        shap_values = self.explainer(flow_vector)
-        shap.plots.waterfall(shap_values[0], show=False)
-        plt.tight_layout()
-        plt.savefig(out_path, bbox_inches="tight")
-        plt.close()
-        return out_path
-"""
-Explainability helpers for ZeroBit using SHAP.
-- Load a trained XGBoost model and generate human-friendly explanations.
-- Produce text summaries and waterfall plots for single-flow predictions.
-"""
-
-from __future__ import annotations
-
-from pathlib import Path
-from typing import Iterable, List, Tuple
-
-import joblib  # type: ignore
-import matplotlib.pyplot as plt  # type: ignore
-import numpy as np
-import shap  # type: ignore
-import pandas as pd
 
 
 def load_model(model_path: Path):
@@ -398,5 +352,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
->>>>>>> 766c7e1fe5dbb41d48b625425c5c1a1c985b7d47
