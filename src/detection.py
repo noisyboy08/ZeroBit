@@ -50,8 +50,16 @@ ALERT_DIR = Path("static/alerts")
 ALERT_DIR.mkdir(parents=True, exist_ok=True)
 ALERT_LOG = Path("data/alerts.csv")
 ALERT_LOG.parent.mkdir(parents=True, exist_ok=True)
-explainer = TrafficExplainer()
-profiler = BehaviorProfiler()
+
+try:
+    explainer = TrafficExplainer()
+except Exception:
+    explainer = None
+
+try:
+    profiler = BehaviorProfiler()
+except Exception:
+    profiler = None
 
 # Telegram alerting configuration (replace with real values)
 TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
@@ -81,16 +89,30 @@ def predict_with_explanation(packet: Any, model: Any) -> Any:
     if IP in packet:
         src_ip = packet[IP].src
     current_bytes = float(len(packet))
-    profiler.update_profile(src_ip or "Unknown", bytes_sent=current_bytes, bytes_received=0.0)
-    anomaly = profiler.is_anomalous(src_ip or "Unknown", current_bytes)
+    anomaly = False
+    if profiler is not None:
+        try:
+            profiler.update_profile(src_ip or "Unknown", bytes_sent=current_bytes, bytes_received=0.0)
+            anomaly = profiler.is_anomalous(src_ip or "Unknown", current_bytes)
+        except Exception:
+            pass
 
     is_alert = pred == 1 or anomaly
     reason = None
 
-    if pred == 1:
-        reason = explainer.generate_explanation(df)
+    if pred == 1 and explainer is not None:
+        try:
+            reason = explainer.generate_explanation(df)
+        except Exception:
+            reason = "Model prediction: malicious"
         print(f"\033[91m{reason}\033[0m")
-        explainer.save_plot(df, datetime.utcnow().strftime("%Y%m%d_%H%M%S%f"), output_dir=str(ALERT_DIR))
+        try:
+            explainer.save_plot(df, datetime.utcnow().strftime("%Y%m%d_%H%M%S%f"), output_dir=str(ALERT_DIR))
+        except Exception:
+            pass
+    elif pred == 1:
+        reason = "Model prediction: malicious"
+        print(f"\033[91m{reason}\033[0m")
     elif anomaly:
         reason = "🚨 UEBA Alert: Abnormal Data Spike Detected."
         print(f"\033[91m{reason}\033[0m")

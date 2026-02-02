@@ -112,7 +112,10 @@ def fetch_latest_alerts(limit: int = 10) -> pd.DataFrame:
 def list_alerts() -> List[Path]:
     if not ALERT_DIR.exists():
         return []
-    return sorted(ALERT_DIR.glob("*.png"), key=lambda p: p.stat().st_mtime, reverse=True)
+    try:
+        return sorted(ALERT_DIR.glob("*.png"), key=lambda p: p.stat().st_mtime, reverse=True)
+    except Exception:
+        return []
 
 
 def load_honeypot_logs() -> pd.DataFrame:
@@ -644,7 +647,10 @@ def main() -> None:
     st.set_page_config(layout="wide", page_title="ZeroBit: Threat Monitor")
     ALERT_DIR.mkdir(parents=True, exist_ok=True)
     alert_log = Path("data/alerts.csv")
-    alert_log_df = pd.read_csv(alert_log) if alert_log.exists() else pd.DataFrame()
+    try:
+        alert_log_df = pd.read_csv(alert_log) if alert_log.exists() else pd.DataFrame()
+    except Exception:
+        alert_log_df = pd.DataFrame()
     honeypot_df = load_honeypot_logs()
     ueba_df = load_ueba_history()
     alerts = list_alerts()
@@ -822,5 +828,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        st.error(f"An error occurred. Please refresh the page. Details: {e}")
+        st.stop()
 
