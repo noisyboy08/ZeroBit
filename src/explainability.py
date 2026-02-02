@@ -9,15 +9,11 @@ from __future__ import annotations
 import os
 import pickle
 from pathlib import Path
-<<<<<<< HEAD
-from typing import Any, Optional
-import pandas as pd
-=======
-from typing import Any
->>>>>>> 766c7e1fe5dbb41d48b625425c5c1a1c985b7d47
+from typing import Any, Optional, Union
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
+import pandas as pd
 import shap  # type: ignore
 
 
@@ -26,12 +22,11 @@ class TrafficExplainer:
 
     def __init__(
         self,
-        model_path: Path | str = Path("models/eta_model.pkl"),
-        explainer_path: Path | str = Path("models/shap_explainer.pkl"),
+        model_path: Union[Path, str] = Path("models/eta_model.pkl"),
+        explainer_path: Union[Path, str] = Path("models/shap_explainer.pkl"),
     ) -> None:
         self.model_path = Path(model_path)
         self.explainer_path = Path(explainer_path)
-<<<<<<< HEAD
         self.model = None
         self.explainer = None
         
@@ -51,14 +46,6 @@ class TrafficExplainer:
             pass
 
     def generate_explanation(self, flow_vector: pd.DataFrame, output_dir: str = "static/alerts") -> str:
-=======
-        with self.model_path.open("rb") as f:
-            self.model = pickle.load(f)
-        with self.explainer_path.open("rb") as f:
-            self.explainer = pickle.load(f)
-
-    def generate_explanation(self, flow_vector, output_dir: str = "static/alerts") -> str:
->>>>>>> 766c7e1fe5dbb41d48b625425c5c1a1c985b7d47
         """
         Compute SHAP values for a single flow vector and return a text summary
         of the top 3 features driving a malicious classification.

@@ -8,14 +8,14 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Union
 
 import numpy as np
 import pandas as pd
 
 
 class BehaviorProfiler:
-    def __init__(self, store_path: Path | str = Path("data/ueba_history.json")) -> None:
+    def __init__(self, store_path: Union[Path, str] = Path("data/ueba_history.json")) -> None:
         self.store_path = Path(store_path)
         self.store_path.parent.mkdir(parents=True, exist_ok=True)
 

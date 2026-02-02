@@ -8,7 +8,7 @@ from __future__ import annotations
 import platform
 import subprocess
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import pandas as pd
 
@@ -21,7 +21,7 @@ class ResponseEngine:
         self.block_log = Path("data/blocked_ips.csv")
         self.block_log.parent.mkdir(parents=True, exist_ok=True)
 
-    def block_ip_firewall(self, ip: str, os_type: str | None = None) -> Dict[str, Any]:
+    def block_ip_firewall(self, ip: str, os_type: Optional[str] = None) -> Dict[str, Any]:
         """
         Block an IP address using system firewall.
         Returns: {'status': str, 'command': str, 'error': str|None}

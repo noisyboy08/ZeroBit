@@ -11,7 +11,7 @@ import subprocess
 import threading
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Union
 
 from watchdog.events import FileSystemEventHandler  # type: ignore
 from watchdog.observers import Observer  # type: ignore
@@ -62,15 +62,15 @@ class CanaryMonitor:
     """Monitors bait files and triggers ransomware kill switch."""
 
     def __init__(self) -> None:
-        self.observer: Observer | None = None
+        self.observer: Optional[Observer] = None
         self.monitored_directories: List[Path] = []
         self.canary_files: List[Path] = []
         self.is_active = False
         self.alert_triggered = False
         self.last_alert_time: float = 0
-        self.alert_file: Path | None = None
+        self.alert_file: Optional[Path] = None
 
-    def setup_traps(self, directory: str | Path) -> List[Path]:
+    def setup_traps(self, directory: Union[str, Path]) -> List[Path]:
         """
         Create bait files (canaries) in the target directory.
         Returns list of created canary file paths.
@@ -105,7 +105,7 @@ class CanaryMonitor:
         self.canary_files.extend(created_files)
         return created_files
 
-    def start_monitoring(self, directory: str | Path) -> bool:
+    def start_monitoring(self, directory: Union[str, Path]) -> bool:
         """
         Start monitoring a directory for canary file modifications.
         Returns True if monitoring started successfully.

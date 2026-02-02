@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Tuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -43,7 +43,7 @@ def _inter_arrivals(times: Iterable[float]) -> List[float]:
     return [ts[i + 1] - ts[i] for i in range(len(ts) - 1)]
 
 
-def _hash_fingerprint(fp: str | None) -> float:
+def _hash_fingerprint(fp: Optional[str]) -> float:
     """Convert a JA3/JA3S fingerprint string into a stable numeric bucket."""
     if not fp:
         return 0.0

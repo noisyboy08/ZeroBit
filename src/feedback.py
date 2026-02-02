@@ -9,7 +9,7 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
 class IncidentManager:
     """Manages incident history, feedback, and similarity search."""
 
-    def __init__(self, db_path: Path | str = Path("data/soc_history.db")) -> None:
+    def __init__(self, db_path: Union[Path, str] = Path("data/soc_history.db")) -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_database()
@@ -51,11 +51,11 @@ class IncidentManager:
 
     def log_incident(
         self,
-        features: Dict[str, float] | pd.DataFrame,
+        features: Union[Dict[str, float], pd.DataFrame],
         prediction: int,
         threat_score: float,
-        ip: str | None = None,
-        attack_type: str | None = None,
+        ip: Optional[str] = None,
+        attack_type: Optional[str] = None,
     ) -> int:
         """
         Log a new incident to the database.

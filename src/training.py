@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Tuple, Optional
 
 import joblib  # type: ignore
 import numpy as np
@@ -197,9 +197,9 @@ def train_eta(json_path: Path, model_path: Path) -> None:
 
 
 def retrain_on_feedback(
-    original_dataset: Path | None = None,
+    original_dataset: Optional[Path] = None,
     model_path: Path = Path("models/eta_model.pkl"),
-    output_model_path: Path | None = None,
+    output_model_path: Optional[Path] = None,
 ) -> str:
     """
     Retrain the model using feedback from IncidentManager.

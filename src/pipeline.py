@@ -10,7 +10,7 @@ import threading
 import time
 from pathlib import Path
 from queue import Queue
-from typing import Any
+from typing import Any, Optional, Union
 
 from scapy.all import sniff  # type: ignore
 
@@ -22,7 +22,7 @@ packet_queue: Queue = Queue(maxsize=1000)
 
 # Global model instance (Singleton pattern)
 _model_instance: Any = None
-_model_path: Path | None = None
+_model_path: Optional[Path] = None
 
 
 def init_db(db_path: Path = Path("data/alerts.db")) -> None:
@@ -49,7 +49,7 @@ def init_db(db_path: Path = Path("data/alerts.db")) -> None:
     print(f"[Pipeline] Database initialized at {db_path}")
 
 
-def get_model(model_path: Path | str = Path("models/eta_model.pkl")) -> Any:
+def get_model(model_path: Union[Path, str] = Path("models/eta_model.pkl")) -> Any:
     """Get or load the model instance (Singleton pattern)."""
     global _model_instance, _model_path
     model_path_obj = Path(model_path)
@@ -74,7 +74,7 @@ def packet_handler(packet: Any) -> None:
         print(f"[Pipeline] Error queuing packet: {exc}")
 
 
-def start_sniffing(iface: str | None = None, count: int | None = None) -> None:
+def start_sniffing(iface: Optional[str] = None, count: Optional[int] = None) -> None:
     """Start packet sniffing in a daemon thread."""
     def sniff_worker() -> None:
         try:
@@ -94,7 +94,7 @@ def start_sniffing(iface: str | None = None, count: int | None = None) -> None:
 
 
 def process_packets(
-    model_path: Path | str = Path("models/eta_model.pkl"),
+    model_path: Union[Path, str] = Path("models/eta_model.pkl"),
     db_path: Path = Path("data/alerts.db"),
 ) -> None:
     """Process packets from queue: extract features, run model, store alerts."""
@@ -188,9 +188,9 @@ def process_packets(
 
 
 def start_pipeline(
-    model_path: Path | str = Path("models/eta_model.pkl"),
-    iface: str | None = None,
-    count: int | None = None,
+    model_path: Union[Path, str] = Path("models/eta_model.pkl"),
+    iface: Optional[str] = None,
+    count: Optional[int] = None,
 ) -> None:
     """Start the complete pipeline: initialize DB, start sniffing and processing threads."""
     print("[Pipeline] Starting ZeroBit Real-Time Processing Pipeline...")

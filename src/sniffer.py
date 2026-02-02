@@ -6,6 +6,7 @@ Requires elevated privileges to capture packets.
 from __future__ import annotations
 
 import argparse
+from typing import Optional
 
 from scapy.all import IP, sniff  # type: ignore
 
@@ -25,7 +26,7 @@ def handle_packet(pkt) -> None:
         print(f"[ZeroBit] Packet parse failed: {exc}")
 
 
-def run_sniffer(iface: str | None, count: int | None) -> None:
+def run_sniffer(iface: Optional[str], count: Optional[int]) -> None:
     sniff(iface=iface, prn=handle_packet, store=False, count=count)
 
 

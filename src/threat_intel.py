@@ -6,7 +6,7 @@ Integrates multiple threat intelligence sources to provide comprehensive IP repu
 from __future__ import annotations
 
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import requests  # type: ignore
 
@@ -18,7 +18,7 @@ class ThreatIntel:
         self.abuseipdb_key = os.getenv("ABUSEIPDB_API_KEY")
         self.virustotal_key = os.getenv("VIRUSTOTAL_API_KEY")
 
-    def check_abuseipdb(self, ip: str, api_key: str | None = None) -> Dict[str, Any]:
+    def check_abuseipdb(self, ip: str, api_key: Optional[str] = None) -> Dict[str, Any]:
         """
         Query AbuseIPDB API for IP reputation.
         Returns: {'confidence': int (0-100), 'abuse_count': int, 'is_public': bool}
@@ -55,7 +55,7 @@ class ThreatIntel:
                 "usage_type": "Unknown",
             }
 
-    def check_virustotal(self, ip: str, api_key: str | None = None) -> Dict[str, Any]:
+    def check_virustotal(self, ip: str, api_key: Optional[str] = None) -> Dict[str, Any]:
         """
         Query VirusTotal API for IP reputation.
         Returns: {'malicious': int, 'suspicious': int, 'harmless': int, 'undetected': int}
