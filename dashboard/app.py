@@ -397,7 +397,7 @@ def render_alert_detail(
         if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
             if not groq_api_key:
                 st.warning("Enter Groq API Key in the sidebar to generate a report.")
-            else:
+                    else:
                 advisor = SecurityAdvisor(api_key=groq_api_key)
             attack_type = "Malicious network flow"
             affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
@@ -457,7 +457,7 @@ def render_honeypot_metrics(hp_df: pd.DataFrame) -> None:
             }
         )
         st.dataframe(display[["Attacker IP", "Time", "Captured Credentials"]], use_container_width=True)
-                else:
+    else:
         st.info("No honeypot captures yet.")
 
 
@@ -491,7 +491,7 @@ def render_live_feed(alerts: List[Path]) -> None:
     if alerts:
         latest = alerts[0]
         st.image(str(latest), caption=f"Latest: {latest.name}", use_container_width=True)
-            else:
+    else:
         st.info("Waiting for alerts...")
 
 
