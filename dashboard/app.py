@@ -541,7 +541,7 @@ def render_threat_level_header(alert_log_df: pd.DataFrame, threat_intel: ThreatI
         level = "🟠 High"
     elif avg_score >= 30:
         level = "🟡 Medium"
-        else:
+    else:
         level = "🟢 Low"
 
     st.metric("Threat Level", level, delta=f"Avg Score: {avg_score:.1f}")
