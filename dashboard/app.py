@@ -40,7 +40,8 @@ except ImportError:
 
 try:
     from src.threat_intel import ThreatIntel
-except ImportError:
+except ImportError as e:
+    st.error(f"Failed to import ThreatIntel: {e}")
     ThreatIntel = None
 
 try:
@@ -515,9 +516,9 @@ def render_threat_map(alert_log: Path) -> None:
     st.dataframe(df[available], use_container_width=True)
 
 
-def render_threat_level_header(alert_log_df: pd.DataFrame, threat_intel: ThreatIntel) -> None:
+def render_threat_level_header(alert_log_df: pd.DataFrame, threat_intel: Optional[object]) -> None:
     """Calculate and display overall threat level based on recent alerts."""
-    if alert_log_df.empty or "src_ip" not in alert_log_df.columns:
+    if alert_log_df.empty or "src_ip" not in alert_log_df.columns or threat_intel is None:
         st.metric("Threat Level", "🟢 Low", delta=None)
         return
 
@@ -547,11 +548,15 @@ def render_threat_level_header(alert_log_df: pd.DataFrame, threat_intel: ThreatI
     st.metric("Threat Level", level, delta=f"Avg Score: {avg_score:.1f}")
 
 
-def render_live_intel_tab(alert_log_df: pd.DataFrame, threat_intel: ThreatIntel) -> None:
+def render_live_intel_tab(alert_log_df: pd.DataFrame, threat_intel: Optional[object]) -> None:
     """Tab showing live threat intelligence for selected alerts."""
     st.header("Live Threat Intelligence")
     if alert_log_df.empty:
         st.info("No alerts to analyze.")
+        return
+    
+    if threat_intel is None:
+        st.warning("Threat Intelligence module not available")
         return
 
     # Show recent alerts with threat scores
@@ -616,21 +621,28 @@ def main() -> None:
     alerts = list_alerts()
 
     # Initialize threat intelligence and response engine
-    threat_intel = ThreatIntel()
-    # Override API keys from sidebar if provided
-    abuse_key = st.session_state.get("abuseipdb_key")
-    vt_key = st.session_state.get("virustotal_key")
-    if abuse_key:
-        threat_intel.abuseipdb_key = abuse_key
-    if vt_key:
-        threat_intel.virustotal_key = vt_key
+    if ThreatIntel is not None:
+        threat_intel = ThreatIntel()
+        # Override API keys from sidebar if provided
+        abuse_key = st.session_state.get("abuseipdb_key")
+        vt_key = st.session_state.get("virustotal_key")
+        if abuse_key:
+            threat_intel.abuseipdb_key = abuse_key
+        if vt_key:
+            threat_intel.virustotal_key = vt_key
+    else:
+        threat_intel = None
+        st.warning("Threat Intelligence module not available")
 
-    response_engine = ResponseEngine()
-    incident_manager = IncidentManager()
+    response_engine = ResponseEngine() if ResponseEngine is not None else None
+    incident_manager = IncidentManager() if IncidentManager is not None else None
     
     # Initialize Canary Monitor
     if "canary_monitor" not in st.session_state:
-        st.session_state["canary_monitor"] = CanaryMonitor()
+        if CanaryMonitor is not None:
+            st.session_state["canary_monitor"] = CanaryMonitor()
+        else:
+            st.session_state["canary_monitor"] = None
 
     # Header with threat level
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
@@ -759,19 +771,19 @@ def main() -> None:
         render_live_feed(alerts)
 
     # Auto-block processing (if enabled)
-    if st.session_state.get("auto_block_enabled") and not alert_log_df.empty:
+    if st.session_state.get("auto_block_enabled") and not alert_log_df.empty and threat_intel is not None and response_engine is not None:
         # Check latest alerts and auto-block if needed
         latest = alert_log_df.tail(5)
         for _, row in latest.iterrows():
             ip = row.get("src_ip", "Unknown")
             if ip != "Unknown":
                 intel = threat_intel.get_combined_score(ip)
-    if intel["threat_score"] > 80:
-        result = response_engine.execute_playbook(
-            {"src_ip": ip}, intel["threat_score"]
-        )
-        if result["action"] == "blocked":
-            st.sidebar.success(f"Auto-blocked: {ip}")
+                if intel["threat_score"] > 80:
+                    result = response_engine.execute_playbook(
+                        {"src_ip": ip}, intel["threat_score"]
+                    )
+                    if result["action"] == "blocked":
+                        st.sidebar.success(f"Auto-blocked: {ip}")
 
 
 if __name__ == "__main__":
