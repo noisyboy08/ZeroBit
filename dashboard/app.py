@@ -157,9 +157,12 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
     # Honeypot toggle
     on = st.sidebar.toggle("Trap Switch (Honeypot on 2222)", value=False, key="honeypot_toggle")
     if on and not st.session_state.get("honeypot_started"):
-        start_honeypot()
-        st.session_state["honeypot_started"] = True
-        st.sidebar.success("Honeypot started on port 2222.")
+        if start_honeypot is not None:
+            start_honeypot()
+            st.session_state["honeypot_started"] = True
+            st.sidebar.success("Honeypot started on port 2222.")
+        else:
+            st.sidebar.error("Honeypot module not available")
     if not on and st.session_state.get("honeypot_started"):
         st.sidebar.warning("Honeypot stop not supported; restart app to fully stop.")
     
@@ -171,27 +174,36 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
     target_ip = st.sidebar.text_input("Target IP", value="192.168.1.1", key="sim_target_ip")
     
     if st.sidebar.button("🚨 Launch Test Attack (DoS)", use_container_width=True):
-        simulator = AttackSimulator()
-        with st.sidebar:
-            with st.spinner("Simulating DoS attack..."):
-                count = simulator.simulate_dos(target_ip, duration=3)
-                st.success(f"Sent {count} attack packets!")
+        if AttackSimulator is not None:
+            simulator = AttackSimulator()
+            with st.sidebar:
+                with st.spinner("Simulating DoS attack..."):
+                    count = simulator.simulate_dos(target_ip, duration=3)
+                    st.success(f"Sent {count} attack packets!")
+        else:
+            st.sidebar.error("Attack Simulator module not available")
         # Don't auto-rerun - user can manually refresh if needed
     
     if st.sidebar.button("🔍 Launch Port Probe", use_container_width=True):
-        simulator = AttackSimulator()
-        with st.sidebar:
-            with st.spinner("Simulating port scan..."):
-                count = simulator.simulate_probe(target_ip, num_ports=15)
-                st.success(f"Probed {count} ports!")
+        if AttackSimulator is not None:
+            simulator = AttackSimulator()
+            with st.sidebar:
+                with st.spinner("Simulating port scan..."):
+                    count = simulator.simulate_probe(target_ip, num_ports=15)
+                    st.success(f"Probed {count} ports!")
+        else:
+            st.sidebar.error("Attack Simulator module not available")
         # Don't auto-rerun - user can manually refresh if needed
     
     if st.sidebar.button("✅ Generate Safe Noise", use_container_width=True, type="primary"):
-        simulator = AttackSimulator()
-        with st.sidebar:
-            with st.spinner("Generating safe traffic (HTTP/DNS)..."):
-                count = simulator.simulate_noise(target_ip="8.8.8.8", num_packets=10)
-                st.info(f"Generated {count} safe packets. Check if system alerts (should be False Positive).")
+        if AttackSimulator is not None:
+            simulator = AttackSimulator()
+            with st.sidebar:
+                with st.spinner("Generating safe traffic (HTTP/DNS)..."):
+                    count = simulator.simulate_noise(target_ip="8.8.8.8", num_packets=10)
+                    st.info(f"Generated {count} safe packets. Check if system alerts (should be False Positive).")
+        else:
+            st.sidebar.error("Attack Simulator module not available")
         # Don't auto-rerun - user can manually refresh if needed
     
     # Canary Deployment Section
@@ -221,11 +233,13 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
             st.sidebar.success(f"Deployed {len(created)} canary files in {default_dir}")
             # Removed auto-rerun to prevent refresh loop
         
-        if status["alert_triggered"]:
+        if status.get("alert_triggered", False):
             st.sidebar.error("🚨 RANSOMWARE ALERT ACTIVE")
             if st.sidebar.button("🔄 Reset Alert", use_container_width=True):
                 canary.reset_alert()
-    st.sidebar.success("Alert reset. Refresh page manually if needed.")
+                st.sidebar.success("Alert reset. Refresh page manually if needed.")
+    else:
+        st.sidebar.info("Canary module not available")
     
     if not alerts:
         st.sidebar.info("No alerts yet.")
@@ -320,12 +334,15 @@ def render_alert_detail(
                     incident_manager.add_feedback(incident_id, is_true_positive=False, notes="False positive")
                     st.success("✅ Feedback recorded: False Alarm")
                     # Trigger retraining in background
-                    with st.spinner("Retraining model with feedback..."):
-                        try:
-                            result = retrain_on_feedback()
-                            st.info(result)
-                        except Exception as exc:
-                            st.error(f"Retraining failed: {exc}")
+                    if retrain_on_feedback is not None:
+                        with st.spinner("Retraining model with feedback..."):
+                            try:
+                                result = retrain_on_feedback()
+                                st.info(result)
+                            except Exception as exc:
+                                st.error(f"Retraining failed: {exc}")
+                    else:
+                        st.info("Model retraining module not available")
                     move_false_positive(selected)
                 else:
                     st.warning("Incident manager not available")
@@ -399,24 +416,27 @@ def render_alert_detail(
             if not groq_api_key:
                 st.warning("Enter Groq API Key in the sidebar to generate a report.")
             else:
-                advisor = SecurityAdvisor(api_key=groq_api_key)
-                attack_type = "Malicious network flow"
-                affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
-                os_system = "Linux"
-                try:
-                    resp = advisor.get_remediation(
-                        attack_type=attack_type,
-                        ip_address=src_ip,
-                        affected_port=str(affected_port),
-                        os_system=os_system,
-                    )
-                    st.info(resp)
-                    for line in resp.splitlines():
-                        if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
-                            st.code(line.strip(), language="bash")
-                            break
-                except Exception as exc:
-                    st.error(f"AI Advisor failed: {exc}")
+                if SecurityAdvisor is None:
+                    st.warning("Security Advisor module not available")
+                else:
+                    advisor = SecurityAdvisor(api_key=groq_api_key)
+                    attack_type = "Malicious network flow"
+                    affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
+                    os_system = "Linux"
+                    try:
+                        resp = advisor.get_remediation(
+                            attack_type=attack_type,
+                            ip_address=src_ip,
+                            affected_port=str(affected_port),
+                            os_system=os_system,
+                        )
+                        st.info(resp)
+                        for line in resp.splitlines():
+                            if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
+                                st.code(line.strip(), language="bash")
+                                break
+                    except Exception as exc:
+                        st.error(f"AI Advisor failed: {exc}")
 
     # Kill Chain Card (MITRE)
     mitre_id = mitre_name = mitre_phase = mitre_desc = None
@@ -431,18 +451,19 @@ def render_alert_detail(
         if mitre_row is not None and key in mitre_row and pd.notna(mitre_row[key]):
             label_guess = str(mitre_row[key]).split()[0].lower()
             break
-    details = get_mitre_details(label_guess or "generic")
-    mitre_id = details["id"]
-    mitre_name = details["name"]
-    mitre_phase = details["phase"]
-    mitre_desc = details["description"]
+    if get_mitre_details is not None:
+        details = get_mitre_details(label_guess or "generic")
+        mitre_id = details["id"]
+        mitre_name = details["name"]
+        mitre_phase = details["phase"]
+        mitre_desc = details["description"]
 
-    with st.expander("Kill Chain Card"):
-        st.markdown(f"**Technique ID:** :red[{mitre_id}] — {mitre_name}")
-        st.markdown(f"**Tactic:** {mitre_phase}")
-        st.markdown(f"**Description:** {mitre_desc}")
-        link = f"https://attack.mitre.org/techniques/{mitre_id}"
-        st.link_button("View on MITRE Website", link)
+        with st.expander("Kill Chain Card"):
+            st.markdown(f"**Technique ID:** :red[{mitre_id}] — {mitre_name}")
+            st.markdown(f"**Tactic:** {mitre_phase}")
+            st.markdown(f"**Description:** {mitre_desc}")
+            link = f"https://attack.mitre.org/techniques/{mitre_id}"
+            st.link_button("View on MITRE Website", link)
 
 
 def render_honeypot_metrics(hp_df: pd.DataFrame) -> None:
@@ -606,7 +627,10 @@ def render_attack_graph_tab(alert_log_df: pd.DataFrame) -> None:
         )
 
     if alerts_list:
-        render_attack_graph(alerts_list)
+        if render_attack_graph is not None:
+            render_attack_graph(alerts_list)
+        else:
+            st.info("Attack graph visualization not available")
     else:
         st.info("No attack data to visualize.")
 
@@ -656,21 +680,21 @@ def main() -> None:
         st.metric("Auto-Block", status)
     with col4:
         # Kill Switch Status
-        canary = st.session_state["canary_monitor"]
-        if canary.alert_triggered:
+        canary = st.session_state.get("canary_monitor")
+        if canary and hasattr(canary, 'alert_triggered') and canary.alert_triggered:
             st.markdown(
-    '<div style="background-color: #ff0000; padding: 10px; border-radius: 5px; text-align: center; animation: blink 1s infinite;">'
-    '<h2 style="color: white; margin: 0;">🚨 RANSOMWARE DETECTED</h2>'
-    '<p style="color: white; margin: 5px 0;">NETWORK SEVERED</p>'
-    '</div>',
-    unsafe_allow_html=True
+                '<div style="background-color: #ff0000; padding: 10px; border-radius: 5px; text-align: center; animation: blink 1s infinite;">'
+                '<h2 style="color: white; margin: 0;">🚨 RANSOMWARE DETECTED</h2>'
+                '<p style="color: white; margin: 5px 0;">NETWORK SEVERED</p>'
+                '</div>',
+                unsafe_allow_html=True
             )
         else:
             st.markdown(
-    '<div style="background-color: #00ff00; padding: 10px; border-radius: 5px; text-align: center;">'
-    '<h3 style="color: black; margin: 0;">🟢 System Healthy</h3>'
-    '</div>',
-    unsafe_allow_html=True
+                '<div style="background-color: #00ff00; padding: 10px; border-radius: 5px; text-align: center;">'
+                '<h3 style="color: black; margin: 0;">🟢 System Healthy</h3>'
+                '</div>',
+                unsafe_allow_html=True
             )
 
     tabs = st.tabs(
@@ -728,16 +752,19 @@ def main() -> None:
             if alert_log_df.empty:
                 st.warning("No alerts to include in the report.")
             else:
-                report = SecurityReport()
-                out_path = Path("report.pdf")
-                report.generate_daily_report(alert_log_df, out_path)
-                with out_path.open("rb") as f:
-                    st.download_button(
-                        label="Download report.pdf",
-                        data=f,
-                        file_name="report.pdf",
-                        mime="application/pdf",
-                    )
+                if SecurityReport is None:
+                    st.warning("Security Report module not available")
+                else:
+                    report = SecurityReport()
+                    out_path = Path("report.pdf")
+                    report.generate_daily_report(alert_log_df, out_path)
+                    with out_path.open("rb") as f:
+                        st.download_button(
+                            label="Download report.pdf",
+                            data=f,
+                            file_name="report.pdf",
+                            mime="application/pdf",
+                        )
             st.session_state["download_report"] = False
 
     with tabs[1]:
@@ -755,17 +782,20 @@ def main() -> None:
             ip_range = st.text_input("IP Range (CIDR)", value="192.168.1.1/24")
             submitted = st.form_submit_button("Scan Network Now")
         if submitted:
-            with st.spinner("Scanning network..."):
-                hosts = scan_network(ip_range)
-    # Enrich with vendor
-    for h in hosts:
-        h["Vendor"] = get_mac_vendor(h["MAC"])
-    if hosts:
-        df_hosts = pd.DataFrame(hosts)
-        st.metric("Total Devices Online", len(df_hosts))
-        st.dataframe(df_hosts[["IP", "MAC", "Vendor"]], use_container_width=True)
-    else:
-        st.info("No hosts discovered.")
+            if scan_network is None or get_mac_vendor is None:
+                st.warning("Network discovery module not available")
+            else:
+                with st.spinner("Scanning network..."):
+                    hosts = scan_network(ip_range)
+                # Enrich with vendor
+                for h in hosts:
+                    h["Vendor"] = get_mac_vendor(h["MAC"])
+                if hosts:
+                    df_hosts = pd.DataFrame(hosts)
+                    st.metric("Total Devices Online", len(df_hosts))
+                    st.dataframe(df_hosts[["IP", "MAC", "Vendor"]], use_container_width=True)
+                else:
+                    st.info("No hosts discovered.")
 
     with tabs[5]:
         render_live_feed(alerts)
