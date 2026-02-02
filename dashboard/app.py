@@ -397,25 +397,25 @@ def render_alert_detail(
         if st.button("🤖 Generate AI Report", type="primary", disabled=not groq_api_key):
             if not groq_api_key:
                 st.warning("Enter Groq API Key in the sidebar to generate a report.")
-                    else:
+            else:
                 advisor = SecurityAdvisor(api_key=groq_api_key)
-            attack_type = "Malicious network flow"
-            affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
-            os_system = "Linux"
-            try:
-                resp = advisor.get_remediation(
-                    attack_type=attack_type,
-                    ip_address=src_ip,
-                    affected_port=str(affected_port),
-                    os_system=os_system,
-                )
-                st.info(resp)
-                for line in resp.splitlines():
-                    if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
-                        st.code(line.strip(), language="bash")
-                        break
-            except Exception as exc:
-                st.error(f"AI Advisor failed: {exc}")
+                attack_type = "Malicious network flow"
+                affected_port = row["affected_port"] if row is not None and "affected_port" in row else "N/A"
+                os_system = "Linux"
+                try:
+                    resp = advisor.get_remediation(
+                        attack_type=attack_type,
+                        ip_address=src_ip,
+                        affected_port=str(affected_port),
+                        os_system=os_system,
+                    )
+                    st.info(resp)
+                    for line in resp.splitlines():
+                        if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
+                            st.code(line.strip(), language="bash")
+                            break
+                except Exception as exc:
+                    st.error(f"AI Advisor failed: {exc}")
 
     # Kill Chain Card (MITRE)
     mitre_id = mitre_name = mitre_phase = mitre_desc = None
@@ -577,7 +577,7 @@ def render_live_intel_tab(alert_log_df: pd.DataFrame, threat_intel: ThreatIntel)
     if intel_rows:
         intel_df = pd.DataFrame(intel_rows)
         st.dataframe(intel_df, use_container_width=True)
-            else:
+    else:
         st.info("No IPs to analyze.")
 
 
@@ -678,21 +678,19 @@ def main() -> None:
             latest_alerts = fetch_latest_alerts(limit=20)
             if not latest_alerts.empty:
                 with alert_placeholder.container():
-        # Show alert count
-        st.metric("Active Alerts", len(latest_alerts))
-        # Display alerts table
-        display_df = latest_alerts[["timestamp", "src_ip", "dst_ip", "attack_type", "confidence"]].copy()
-        display_df["confidence"] = display_df["confidence"].apply(
-            lambda x: f"{x:.2%}" if pd.notna(x) else "N/A"
-        )
-        display_df.columns = ["Time", "Source IP", "Dest IP", "Attack Type", "Confidence"]
-        st.dataframe(display_df, use_container_width=True, height=300)
+                    st.metric("Active Alerts", len(latest_alerts))
+                    display_df = latest_alerts[["timestamp", "src_ip", "dst_ip", "attack_type", "confidence"]].copy()
+                    display_df["confidence"] = display_df["confidence"].apply(
+                        lambda x: f"{x:.2%}" if pd.notna(x) else "N/A"
+                    )
+                    display_df.columns = ["Time", "Source IP", "Dest IP", "Attack Type", "Confidence"]
+                    st.dataframe(display_df, use_container_width=True, height=300)
             else:
-    with alert_placeholder.container():
-        st.info("No alerts yet. Start the processing engine and wait for network traffic.")
-                else:
+                with alert_placeholder.container():
+                    st.info("No alerts yet. Start the processing engine and wait for network traffic.")
+        else:
             with alert_placeholder.container():
-    st.warning("⚠️ Processing engine is not running. Click 'Start Engine' in the sidebar to begin real-time detection.")
+                st.warning("⚠️ Processing engine is not running. Click 'Start Engine' in the sidebar to begin real-time detection.")
         
         # Use Streamlit's auto-refresh instead of manual rerun
         # Auto-refresh is handled by Streamlit's built-in refresh mechanism
@@ -718,16 +716,16 @@ def main() -> None:
             if alert_log_df.empty:
                 st.warning("No alerts to include in the report.")
             else:
-    report = SecurityReport()
-    out_path = Path("report.pdf")
-    report.generate_daily_report(alert_log_df, out_path)
-    with out_path.open("rb") as f:
-        st.download_button(
-            label="Download report.pdf",
-            data=f,
-            file_name="report.pdf",
-            mime="application/pdf",
-        )
+                report = SecurityReport()
+                out_path = Path("report.pdf")
+                report.generate_daily_report(alert_log_df, out_path)
+                with out_path.open("rb") as f:
+                    st.download_button(
+                        label="Download report.pdf",
+                        data=f,
+                        file_name="report.pdf",
+                        mime="application/pdf",
+                    )
             st.session_state["download_report"] = False
 
     with tabs[1]:
@@ -754,7 +752,7 @@ def main() -> None:
         df_hosts = pd.DataFrame(hosts)
         st.metric("Total Devices Online", len(df_hosts))
         st.dataframe(df_hosts[["IP", "MAC", "Vendor"]], use_container_width=True)
-        else:
+    else:
         st.info("No hosts discovered.")
 
     with tabs[5]:
