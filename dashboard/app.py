@@ -634,11 +634,11 @@ def main() -> None:
 
     # Header with threat level
     col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-                    with col1:
+    with col1:
         st.title("ZeroBit: Threat Intelligence Dashboard")
-                    with col2:
+    with col2:
         render_threat_level_header(alert_log_df, threat_intel)
-                    with col3:
+    with col3:
         auto_block_enabled = st.session_state.get("auto_block_enabled", False)
         status = "🟢 Active" if auto_block_enabled else "⚪ Inactive"
         st.metric("Auto-Block", status)
