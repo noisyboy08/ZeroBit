@@ -577,12 +577,36 @@ def render_threat_map(alert_log: Path) -> None:
         st.info("No alerts logged yet.")
         return
 
+    # Load saved defaults from config if available
+    try:
+        cfg_mgr = get_config() if get_config is not None else None
+    except Exception:
+        cfg_mgr = None
+
+    default_enrich = False
+    default_min_conf = 0
+    default_cluster = True
+    if cfg_mgr is not None:
+        try:
+            default_enrich = bool(cfg_mgr.get("map_enrich_missing", False))
+            default_min_conf = int(float(cfg_mgr.get("map_min_confidence", 0)))
+            default_cluster = bool(cfg_mgr.get("map_cluster_default", True))
+        except Exception:
+            # Keep sensible defaults on any error
+            default_enrich = False
+            default_min_conf = 0
+            default_cluster = True
+
     # Controls
     col_a, col_b, col_c = st.columns([2, 2, 1])
     with col_a:
-        enrich_missing = st.checkbox("Enrich missing coordinates (ip-api, cached)", value=False)
+        enrich_missing = st.checkbox(
+            "Enrich missing coordinates (ip-api, cached)", value=default_enrich
+        )
     with col_b:
-        min_confidence = st.slider("Min Confidence (%)", 0.0, 100.0, 0.0)
+        min_confidence = st.slider(
+            "Min Confidence (%)", 0, 100, default_min_conf
+        )
     with col_c:
         if st.button("🔄 Refresh Map"):
             st.rerun()
@@ -634,7 +658,7 @@ def render_threat_map(alert_log: Path) -> None:
     with col_opts_a:
         view_mode = st.radio("View", ["Points", "Heatmap"], index=0, horizontal=True)
     with col_opts_b:
-        cluster = st.checkbox("Cluster points (pydeck)", value=True)
+        cluster = st.checkbox("Cluster points (pydeck)", value=default_cluster)
     with col_opts_c:
         export_csv = st.button("📥 Export CSV")
 
@@ -840,7 +864,7 @@ def render_attack_graph_tab(alert_log_df: pd.DataFrame) -> None:
 
     # Convert alert log to list of dicts for graph
     alerts_list = []
-    for _, row in alert_log_df.tail(50).iterrows():  # Last 50 alerts
+    for _, row in alert_log_df.tail(500).iterrows():  # Last 500 alerts (demo)
         alerts_list.append(
             {
     "src_ip": row.get("src_ip", "Unknown"),
