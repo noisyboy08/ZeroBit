@@ -3,9 +3,7 @@ import os
 import platform
 import shutil
 import sqlite3
-import subprocess
 import sys
-import time
 from pathlib import Path
 from typing import List, Optional
 
@@ -60,6 +58,20 @@ except ImportError:
     render_attack_graph = None
 
 try:
+    import plotly.express as px
+except Exception:
+    px = None
+
+try:
+    from src.map_utils import prepare_alerts_for_map
+except Exception:
+    prepare_alerts_for_map = None
+try:
+    from src.config import get_config
+except Exception:
+    get_config = None
+
+try:
     from src.feedback import IncidentManager
 except ImportError:
     IncidentManager = None
@@ -105,7 +117,7 @@ def fetch_latest_alerts(limit: int = 10) -> pd.DataFrame:
         )
         conn.close()
         return df
-    except Exception as exc:
+    except Exception:
         return pd.DataFrame(columns=["id", "timestamp", "src_ip", "dst_ip", "attack_type", "confidence"])
 
 
@@ -252,6 +264,39 @@ def render_sidebar(alerts: List[Path]) -> Path | None:
     if not alerts:
         st.sidebar.info("No alerts yet.")
         return None
+    # Settings saved to config.json
+    try:
+        cfg_mgr = get_config() if get_config is not None else None
+    except Exception:
+        cfg_mgr = None
+
+    with st.sidebar.expander("⚙️ Settings", expanded=False):
+        st.caption("UI & Map Preferences")
+        # Defaults come from config if available
+        default_enrich = False
+        default_min_conf = 0.0
+        default_cluster = True
+        if cfg_mgr is not None:
+            default_enrich = bool(cfg_mgr.get("map_enrich_missing", False))
+            default_min_conf = float(cfg_mgr.get("map_min_confidence", 0.0))
+            default_cluster = bool(cfg_mgr.get("map_cluster_default", True))
+
+        map_enrich = st.checkbox("Enrich missing IP coordinates by default", value=default_enrich)
+        map_min_conf = st.slider("Default min confidence (%)", 0.0, 100.0, int(default_min_conf))
+        map_cluster_default = st.checkbox("Cluster points by default", value=default_cluster)
+
+        if st.button("Save Settings", use_container_width=True):
+            if cfg_mgr is not None:
+                cfg_mgr.set("map_enrich_missing", bool(map_enrich))
+                cfg_mgr.set("map_min_confidence", float(map_min_conf))
+                cfg_mgr.set("map_cluster_default", bool(map_cluster_default))
+                try:
+                    cfg_mgr.save(Path("config.json"))
+                    st.success("Settings saved to config.json")
+                except Exception as err:
+                    st.error(f"Failed to save settings: {err}")
+            else:
+                st.info("Config manager not available; settings not persisted.")
     labels = [f"{p.name}" for p in alerts]
     choice = st.sidebar.selectbox("Select alert image", labels)
     idx = labels.index(choice)
@@ -347,8 +392,8 @@ def render_alert_detail(
                             try:
                                 result = retrain_on_feedback()
                                 st.info(result)
-                            except Exception as exc:
-                                st.error(f"Retraining failed: {exc}")
+                            except Exception:
+                                st.error("Retraining failed")
                     else:
                         st.info("Model retraining module not available")
                     move_false_positive(selected)
@@ -443,8 +488,8 @@ def render_alert_detail(
                             if any(k in line.lower() for k in ["iptables", "ufw", "netsh", "firewall-cmd", "block", "deny"]):
                                 st.code(line.strip(), language="bash")
                                 break
-                    except Exception as exc:
-                        st.error(f"AI Advisor failed: {exc}")
+                    except Exception:
+                        st.error("AI Advisor failed")
 
     # Kill Chain Card (MITRE)
     mitre_id = mitre_name = mitre_phase = mitre_desc = None
@@ -531,19 +576,189 @@ def render_threat_map(alert_log: Path) -> None:
     if not alert_log.exists():
         st.info("No alerts logged yet.")
         return
-    df = pd.read_csv(alert_log)
+
+    # Controls
+    col_a, col_b, col_c = st.columns([2, 2, 1])
+    with col_a:
+        enrich_missing = st.checkbox("Enrich missing coordinates (ip-api, cached)", value=False)
+    with col_b:
+        min_confidence = st.slider("Min Confidence (%)", 0.0, 100.0, 0.0)
+    with col_c:
+        if st.button("🔄 Refresh Map"):
+            st.rerun()
+
+    # Prepare dataframe: prefer helper if available
+    try:
+        if prepare_alerts_for_map is not None:
+            df = prepare_alerts_for_map(alert_log, enrich_missing=enrich_missing, min_confidence=min_confidence)
+        else:
+            df = pd.read_csv(alert_log)
+            if "confidence" in df.columns:
+                df["confidence"] = pd.to_numeric(df["confidence"], errors="coerce").fillna(0.0)
+            if min_confidence > 0:
+                df = df[df["confidence"] >= min_confidence]
+    except Exception:
+        st.error("Failed to load or prepare alerts for map.")
+        return
+
     if df.empty or "lat" not in df.columns or "lon" not in df.columns:
-        st.info("No geolocated alerts to display.")
+        st.info("No geolocated alerts to display. Try enabling enrichment.")
         return
-    df = df.dropna(subset=["lat", "lon"])
+
+    # Optional time filter
+    if "timestamp" in df.columns:
+        try:
+            df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+        except Exception:
+            pass
+        time_filter = st.selectbox("Time Window", ["All Time", "24 hours", "7 days"], index=1)
+        if time_filter == "24 hours":
+            cutoff = pd.Timestamp.now() - pd.Timedelta(days=1)
+            df = df[df["timestamp"] >= cutoff]
+        elif time_filter == "7 days":
+            cutoff = pd.Timestamp.now() - pd.Timedelta(days=7)
+            df = df[df["timestamp"] >= cutoff]
+
+    df = df.dropna(subset=["lat", "lon"]) if not df.empty else df
     if df.empty:
-        st.info("No geolocated alerts to display.")
+        st.info("No geolocated alerts match the filters.")
         return
-    st.map(df[["lat", "lon"]])
+
+    # Advanced rendering options
+    try:
+        import pydeck as pdk
+    except Exception:
+        pdk = None
+
+    col_opts_a, col_opts_b, col_opts_c = st.columns([1, 1, 1])
+    with col_opts_a:
+        view_mode = st.radio("View", ["Points", "Heatmap"], index=0, horizontal=True)
+    with col_opts_b:
+        cluster = st.checkbox("Cluster points (pydeck)", value=True)
+    with col_opts_c:
+        export_csv = st.button("📥 Export CSV")
+
+    if export_csv:
+        try:
+            st.download_button(
+                label="Download filtered alerts",
+                data=df.to_csv(index=False),
+                file_name="alerts_for_map.csv",
+                mime="text/csv",
+            )
+        except Exception:
+            st.error("Failed to prepare CSV for download.")
+
+    # Use pydeck for more advanced clustering/heatmap if available
+    if pdk is not None:
+        try:
+            if view_mode == "Points":
+                layer = pdk.Layer(
+                    "ScatterplotLayer",
+                    df,
+                    get_position=["lon", "lat"],
+                    get_radius=10000,
+                    get_fill_color=[255, 50, 50, 160],
+                    pickable=True,
+                    auto_highlight=True,
+                )
+                if cluster:
+                    # Cluster using HexagonLayer for aggregation
+                    layer = pdk.Layer(
+                        "HexagonLayer",
+                        df,
+                        get_position=["lon", "lat"],
+                        radius=20000,
+                        elevation_scale=50,
+                        elevation_range=[0, 3000],
+                        pickable=True,
+                    )
+                view_state = pdk.ViewState(
+                    latitude=df["lat"].mean(),
+                    longitude=df["lon"].mean(),
+                    zoom=1,
+                    pitch=0,
+                )
+                tooltip = {
+                    "html": (
+                        "<b>IP:</b> {src_ip}<br/>"
+                        "<b>Country:</b> {country}<br/>"
+                        "<b>ISP:</b> {isp}<br/>"
+                        "<b>Confidence:</b> {confidence}"
+                    ),
+                    "style": {"color": "white"},
+                }
+                deck = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip=tooltip)
+                st.pydeck_chart(deck)
+            else:
+                # Heatmap Layer
+                heat = pdk.Layer(
+                    "HeatmapLayer",
+                    df,
+                    get_position=["lon", "lat"],
+                    aggregation=pdk.types.String("MEAN"),
+                    radius_pixels=60,
+                )
+                view_state = pdk.ViewState(latitude=df["lat"].mean(), longitude=df["lon"].mean(), zoom=1, pitch=0)
+                deck = pdk.Deck(layers=[heat], initial_view_state=view_state)
+                st.pydeck_chart(deck)
+        except Exception:
+            st.warning("pydeck rendering failed; falling back to Plotly/Streamlit map.")
+            pdk = None
+
+    if pdk is None and px is not None:
+        try:
+            # Plotly points/heatmap fallback
+            if view_mode == "Points":
+                color = "attack_type" if "attack_type" in df.columns else None
+                size = "confidence" if "confidence" in df.columns else None
+                fig = px.scatter_geo(
+                    df,
+                    lat="lat",
+                    lon="lon",
+                    hover_name="src_ip" if "src_ip" in df.columns else None,
+                    color=color,
+                    size=size,
+                    projection="natural earth",
+                    hover_data={
+                        "country": True if "country" in df.columns else False,
+                        "isp": True if "isp" in df.columns else False,
+                        "confidence": True if "confidence" in df.columns else False,
+                    },
+                )
+                fig.update_layout(height=600, margin={"r": 0, "t": 0, "l": 0, "b": 0})
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                if "lat" in df.columns and "lon" in df.columns:
+                    # Use density_mapbox if token available, else scatter_geo with opacity
+                    mapbox_token = os.getenv("MAPBOX_TOKEN")
+                    if mapbox_token:
+                        px.set_mapbox_access_token(mapbox_token)
+                        fig = px.density_mapbox(df, lat="lat", lon="lon", z="confidence" if "confidence" in df.columns else None, radius=10, center=dict(lat=df["lat"].mean(), lon=df["lon"].mean()), zoom=1, mapbox_style="stamen-terrain")
+                        fig.update_layout(height=600, margin={"r": 0, "t": 0, "l": 0, "b": 0})
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        # fallback: scatter_geo with lower opacity to simulate heat
+                        fig = px.scatter_geo(df, lat="lat", lon="lon", projection="natural earth",
+                                             opacity=0.6, hover_name="src_ip" if "src_ip" in df.columns else None)
+                        fig.update_traces(marker=dict(size=6, color="red"))
+                        fig.update_layout(height=600, margin={"r": 0, "t": 0, "l": 0, "b": 0})
+                        st.plotly_chart(fig, use_container_width=True)
+        except Exception:
+            st.warning("Plotly render failed; falling back to simple map.")
+            st.map(df[["lat", "lon"]])
+    elif pdk is None and px is None:
+        # Last fallback
+        st.map(df[["lat", "lon"]])
+
+    # Recent threats table
     st.subheader("Recent Threats")
-    display_cols = ["src_ip", "country", "isp", "confidence"]
+    display_cols = ["timestamp", "src_ip", "attack_type", "country", "isp", "confidence"]
     available = [c for c in display_cols if c in df.columns]
-    st.dataframe(df[available], use_container_width=True)
+    if available:
+        st.dataframe(df[available].sort_values(by="timestamp", ascending=False).head(200), use_container_width=True)
+    else:
+        st.dataframe(df.head(200), use_container_width=True)
 
 
 def render_threat_level_header(alert_log_df: pd.DataFrame, threat_intel: Optional[object]) -> None:

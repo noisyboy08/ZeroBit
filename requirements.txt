@@ -18,3 +18,4 @@ xgboost>=2.0.0  # For ETA model training
 shap>=0.43.0  # SHAP explainability
 pydantic>=2.0.0  # Data validation
 pyyaml>=6.0  # Configuration files
+pytest>=7.0.0
